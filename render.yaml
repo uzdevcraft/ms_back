@@ -1,0 +1,36 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# After first deploy: Dashboard → Environment → set DATABASE_URL (Render Postgres "Internal"),
+# TELEGRAM_BOT_TOKEN, JWT_SECRET (≥32 chars), CORS_ORIGINS (your WebApp origins, comma-separated).
+
+version: "1"
+
+services:
+  - type: web
+    name: telegram-marketplace-api
+    runtime: node
+    plan: starter
+    region: frankfurt
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: DOCS_ENABLED
+        value: "false"
+      - key: LOG_LEVEL
+        value: info
+      - key: DATABASE_URL
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CORS_ORIGINS
+        sync: false
+      - key: BOOTSTRAP_ADMIN_TELEGRAM_IDS
+        sync: false
