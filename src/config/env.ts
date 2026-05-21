@@ -57,16 +57,7 @@ export function loadEnv(): Env {
     throw new Error(`Invalid environment: ${JSON.stringify(message)}`);
   }
 
-  const explicitNodeEnv = process.env.NODE_ENV;
-  const isExplicitNodeEnv =
-    explicitNodeEnv === 'development' ||
-    explicitNodeEnv === 'test' ||
-    explicitNodeEnv === 'production';
-  const nodeEnv = isExplicitNodeEnv
-    ? explicitNodeEnv
-    : process.env.RENDER === 'true'
-      ? 'production'
-      : parsed.data.NODE_ENV;
+  const nodeEnv = parsed.data.NODE_ENV;
 
   cached = {
     ...parsed.data,
@@ -76,9 +67,7 @@ export function loadEnv(): Env {
       process.env.DOCS_ENABLED === '1' ||
       nodeEnv === 'development',
     trustProxy:
-      process.env.TRUST_PROXY === 'true' ||
-      process.env.TRUST_PROXY === '1' ||
-      process.env.RENDER === 'true',
+      process.env.TRUST_PROXY === 'true' || process.env.TRUST_PROXY === '1',
   };
   return cached;
 }
