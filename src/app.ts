@@ -22,6 +22,7 @@ import { internalV1Routes } from './routes/v1/internal.routes.js';
 import { authV1Routes } from './routes/v1/auth.routes.js';
 import { usersV1Routes } from './routes/v1/users.routes.js';
 import { adminV1Routes } from './routes/v1/admin.routes.js';
+import { healthRoutes } from './routes/health.routes.js';
 
 export async function buildApp(env: Env) {
   const app = Fastify({
@@ -36,7 +37,19 @@ export async function buildApp(env: Env) {
 
   await app.register(createConfigPlugin(env));
   await app.register(errorHandler);
-  await app.register(helmet, { global: true, contentSecurityPolicy: false });
+  await app.register(helmet, {
+    global: true,
+    contentSecurityPolicy: false,
+    ...(env.NODE_ENV === 'production'
+      ? {
+          hsts: {
+            maxAge: 31_536_000,
+            includeSubDomains: true,
+            preload: true,
+          },
+        }
+      : {}),
+  });
   await app.register(cors, {
     credentials: true,
     origin: (origin, cb) => {
@@ -57,8 +70,8 @@ export async function buildApp(env: Env) {
     },
   });
   await app.register(rateLimit, {
-    max: 1000,
-    timeWindow: '1 minute',
+    max: env.RATE_LIMIT_MAX,
+    timeWindow: env.RATE_LIMIT_WINDOW,
   });
   await app.register(prismaPlugin);
   await app.register(servicesPlugin);
@@ -99,13 +112,14 @@ export async function buildApp(env: Env) {
     });
   }
 
-  app.get('/health', async () => ({ status: 'ok' as const }));
+  await app.register(healthRoutes);
 
   app.get('/', async () => ({
     name: 'Telegram Marketplace — Main API',
     version: '1.0.0',
     links: {
       health: '/health',
+      readiness: '/health/ready',
       api: '/api/v1',
       ...(env.docsEnabled ? { docs: '/docs' } : {}),
     },

@@ -1,7 +1,10 @@
+# LOCAL DEVELOPMENT ONLY — PostgreSQL in Docker.
+# Production: DigitalOcean Managed PostgreSQL + PM2 on Droplet (no Postgres container on server).
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: tg_marketplace_db
+    container_name: tg_marketplace_db_dev
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-app}
@@ -10,12 +13,16 @@ services:
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-telegram_marketplace}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-telegram_marketplace}",
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
 
 volumes:
-  postgres_data:
+  postgres_data_dev:
